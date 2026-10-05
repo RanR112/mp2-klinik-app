@@ -8,3 +8,6 @@ build/
 **/doc/api/
 .flutter-plugins
 .flutter-plugins-dependencies
+
+# Alamat API disimpan lokal; yang di-commit hanya contohnya (.env.example).
+.env

@@ -1,22 +1,22 @@
 import 'package:flutter/material.dart';
 import '../helpers/api_client.dart';
-import '../model/poli.dart';
-import '../service/poli_service.dart';
-import 'poli_item.dart';
-import 'poli_form.dart';
+import '../model/pasien.dart';
+import '../service/pasien_service.dart';
+import 'pasien_item.dart';
+import 'pasien_form.dart';
 import '../widget/sidebar.dart';
 
-class PoliPage extends StatefulWidget {
-  const PoliPage({super.key});
+class PasienPage extends StatefulWidget {
+  const PasienPage({super.key});
 
   @override
-  State<PoliPage> createState() => _PoliPageState();
+  State<PasienPage> createState() => _PasienPageState();
 }
 
-class _PoliPageState extends State<PoliPage> {
+class _PasienPageState extends State<PasienPage> {
   // Stream disimpan di state, bukan dibuat ulang di dalam build(), supaya satu
   // kali muat hanya menghasilkan satu request ke API.
-  late Stream<List<Poli>> _stream;
+  late Stream<List<Pasien>> _stream;
 
   @override
   void initState() {
@@ -24,8 +24,8 @@ class _PoliPageState extends State<PoliPage> {
     _stream = getList();
   }
 
-  Stream<List<Poli>> getList() async* {
-    List<Poli> data = await PoliService().listData();
+  Stream<List<Pasien>> getList() async* {
+    List<Pasien> data = await PasienService().listData();
     yield data;
   }
 
@@ -42,7 +42,7 @@ class _PoliPageState extends State<PoliPage> {
       appBar: AppBar(
         backgroundColor: const Color(0xFF2196F3),
         foregroundColor: Colors.white,
-        title: const Text("Data Poli"),
+        title: const Text("Data Pasien"),
         actions: [
           GestureDetector(
             child: const Padding(
@@ -51,7 +51,7 @@ class _PoliPageState extends State<PoliPage> {
             ),
             onTap: () async {
               await Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => const PoliForm()));
+                  MaterialPageRoute(builder: (context) => const PasienForm()));
               if (!mounted) return;
               refresh();
             },
@@ -60,7 +60,7 @@ class _PoliPageState extends State<PoliPage> {
       ),
       body: StreamBuilder(
         stream: _stream,
-        builder: (context, AsyncSnapshot<List<Poli>> snapshot) {
+        builder: (context, AsyncSnapshot<List<Pasien>> snapshot) {
           if (snapshot.hasError) {
             return _pesanGagal(snapshot.error!);
           }
@@ -69,7 +69,7 @@ class _PoliPageState extends State<PoliPage> {
               child: CircularProgressIndicator(),
             );
           }
-          final List<Poli> daftar = snapshot.data ?? [];
+          final List<Pasien> daftar = snapshot.data ?? [];
           if (daftar.isEmpty) {
             return const Center(child: Text('Data Kosong'));
           }
@@ -77,8 +77,8 @@ class _PoliPageState extends State<PoliPage> {
           return ListView.builder(
             itemCount: daftar.length,
             itemBuilder: (context, index) {
-              return PoliItem(
-                poli: daftar[index],
+              return PasienItem(
+                pasien: daftar[index],
                 // Data bisa berubah di halaman detail (ubah/hapus), jadi daftar
                 // dimuat ulang begitu kembali ke sini.
                 onKembali: () {

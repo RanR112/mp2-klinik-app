@@ -1,23 +1,22 @@
 import 'package:flutter/material.dart';
 import '../helpers/api_client.dart';
-import '../model/poli.dart';
-import '../service/poli_service.dart';
-import 'poli_update_form.dart';
+import '../model/pegawai.dart';
+import '../service/pegawai_service.dart';
+import 'pegawai_update_form.dart';
 
-class PoliDetail extends StatefulWidget {
-  final Poli poli;
+class PegawaiDetail extends StatefulWidget {
+  final Pegawai pegawai;
 
-  const PoliDetail({super.key, required this.poli});
+  const PegawaiDetail({super.key, required this.pegawai});
 
   @override
-  State<PoliDetail> createState() => _PoliDetailState();
+  State<PegawaiDetail> createState() => _PegawaiDetailState();
 }
 
-class _PoliDetailState extends State<PoliDetail> {
-  // Satu stream dipakai bersama oleh seluruh halaman. Versi awal memanggil
-  // getData() di dalam build() dan di dalam masing-masing tombol, sehingga satu
-  // kali buka halaman mengirim tiga request ke API.
-  late Stream<Poli> _stream;
+class _PegawaiDetailState extends State<PegawaiDetail> {
+  // Satu stream dipakai bersama oleh seluruh halaman, jadi membuka halaman ini
+  // hanya mengirim satu request ke API.
+  late Stream<Pegawai> _stream;
   bool _prosesHapus = false;
 
   @override
@@ -26,12 +25,12 @@ class _PoliDetailState extends State<PoliDetail> {
     _stream = getData();
   }
 
-  Stream<Poli> getData() async* {
-    final String? id = widget.poli.id;
+  Stream<Pegawai> getData() async* {
+    final String? id = widget.pegawai.id;
     if (id == null || id.isEmpty) {
-      throw Exception('Data poli tidak punya id, detail tidak bisa dimuat.');
+      throw Exception('Data pegawai tidak punya id, detail tidak bisa dimuat.');
     }
-    Poli data = await PoliService().getById(id);
+    Pegawai data = await PegawaiService().getById(id);
     yield data;
   }
 
@@ -47,11 +46,11 @@ class _PoliDetailState extends State<PoliDetail> {
       appBar: AppBar(
         backgroundColor: const Color(0xFF2196F3),
         foregroundColor: Colors.white,
-        title: const Text("Detail Poli"),
+        title: const Text("Detail Pegawai"),
       ),
       body: StreamBuilder(
         stream: _stream,
-        builder: (context, AsyncSnapshot<Poli> snapshot) {
+        builder: (context, AsyncSnapshot<Pegawai> snapshot) {
           if (snapshot.hasError) {
             return Center(
               child: Padding(
@@ -66,32 +65,48 @@ class _PoliDetailState extends State<PoliDetail> {
               child: CircularProgressIndicator(),
             );
           }
-          final Poli? poli = snapshot.data;
-          if (poli == null) {
+          final Pegawai? pegawai = snapshot.data;
+          if (pegawai == null) {
             return const Center(child: Text('Data Tidak Ditemukan'));
           }
-          return Column(
-            children: [
-              const SizedBox(height: 20),
-              Text(
-                "Nama Poli : ${poli.namaPoli}",
-                style: const TextStyle(fontSize: 20),
+          return SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _baris("NIP", pegawai.nip),
+                  _baris("Nama", pegawai.nama),
+                  _baris("Tanggal Lahir", pegawai.tanggalLahir),
+                  _baris("Nomor Telepon", pegawai.nomorTelepon),
+                  _baris("Email", pegawai.email),
+                  // Password tidak ditampilkan polos di layar.
+                  _baris("Password", "••••••"),
+                  const SizedBox(height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [_tombolUbah(pegawai), _tombolHapus(pegawai)],
+                  )
+                ],
               ),
-              const SizedBox(height: 20),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                // Data yang sudah termuat dikirim ke tombol, jadi tidak ada
-                // lagi snapshot.data! yang bisa null saat tombol ditekan.
-                children: [_tombolUbah(poli), _tombolHapus(poli)],
-              )
-            ],
+            ),
           );
         },
       ),
     );
   }
 
-  Widget _tombolUbah(Poli poli) {
+  Widget _baris(String label, String nilai) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Text(
+        "$label : $nilai",
+        style: const TextStyle(fontSize: 18),
+      ),
+    );
+  }
+
+  Widget _tombolUbah(Pegawai pegawai) {
     return ElevatedButton(
         onPressed: _prosesHapus
             ? null
@@ -99,7 +114,8 @@ class _PoliDetailState extends State<PoliDetail> {
                 final bool? berubah = await Navigator.push<bool>(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => PoliUpdateForm(poli: poli)));
+                        builder: (context) =>
+                            PegawaiUpdateForm(pegawai: pegawai)));
                 if (!mounted) return;
                 if (berubah == true) {
                   refresh();
@@ -109,21 +125,21 @@ class _PoliDetailState extends State<PoliDetail> {
         child: const Text("Ubah"));
   }
 
-  Widget _tombolHapus(Poli poli) {
+  Widget _tombolHapus(Pegawai pegawai) {
     return ElevatedButton(
-        onPressed: _prosesHapus ? null : () => _konfirmasiHapus(poli),
+        onPressed: _prosesHapus ? null : () => _konfirmasiHapus(pegawai),
         style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
         child: const Text("Hapus"));
   }
 
-  void _konfirmasiHapus(Poli poli) {
+  void _konfirmasiHapus(Pegawai pegawai) {
     AlertDialog alertDialog = AlertDialog(
       content: const Text("Yakin ingin menghapus data ini?"),
       actions: [
         ElevatedButton(
           onPressed: () {
             Navigator.pop(context);
-            _hapus(poli);
+            _hapus(pegawai);
           },
           style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
           child: const Text("YA"),
@@ -140,13 +156,13 @@ class _PoliDetailState extends State<PoliDetail> {
     showDialog(context: context, builder: (context) => alertDialog);
   }
 
-  Future<void> _hapus(Poli poli) async {
+  Future<void> _hapus(Pegawai pegawai) async {
     setState(() => _prosesHapus = true);
     try {
-      await PoliService().hapus(poli);
+      await PegawaiService().hapus(pegawai);
       if (!mounted) return;
-      // Kembali ke Data Poli yang sudah ada di stack (bukan push halaman baru)
-      // dan memberi tanda supaya daftarnya dimuat ulang.
+      // Kembali ke Data Pegawai yang sudah ada di stack (bukan push halaman
+      // baru) dan memberi tanda supaya daftarnya dimuat ulang.
       Navigator.pop(context, true);
     } catch (e) {
       if (!mounted) return;

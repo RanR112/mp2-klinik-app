@@ -1,4 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Dibutuhkan dio untuk memanggil REST API mockapi.io. Manifest debug dan
+         profile punya permission ini sendiri, tapi build release memakai
+         manifest ini, jadi tanpa baris berikut semua request gagal. -->
+    <uses-permission android:name="android.permission.INTERNET"/>
     <application
         android:label="klinik_app"
         android:name="${applicationName}"
